@@ -40,10 +40,10 @@ def configure():
         send_text = True;
     elif 'tweet' in arguments:
         send_tweet = True;
-    else if 'email_address' in arguments:
+    elif 'email_address' in arguments:
         # Sanitize the email address and store it.
         email_address = arguments['email_address'];
-    else if 'phone_number' in arguments:
+    elif 'phone_number' in arguments:
         # sanitize the phone number and store it.
         phone_number = arguments['phone_number']
     elif 'hashtag' in arguments:

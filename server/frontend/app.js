@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var request = require('request');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -28,7 +29,21 @@ app.use('/users', users);
 
 app.post('/update', function(req,res) {
 	res.render('index', {title: 'Expert Guacamole'});
-	console.log(req.body);
+
+	var options = {
+		url: 'http://localhost:5000/update',
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		form: req.body
+	};
+
+	request(options, function(err, response, body) {
+		if (!err && response.statusCode == 2000) {
+			console.log(body);
+		}
+	});
 });
 
 // catch 404 and forward to error handler

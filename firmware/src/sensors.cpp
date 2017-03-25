@@ -1,6 +1,10 @@
 #include "sensors.h"
 
-bool mailbox_opened(void)
+void Sensors::init(void)
+{
+}
+
+bool Sensors::mailbox_opened(void)
 {
     return false;
 }

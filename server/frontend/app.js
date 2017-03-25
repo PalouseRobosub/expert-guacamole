@@ -27,7 +27,7 @@ app.use('/', index);
 app.use('/users', users);
 
 app.post('/update', function(req,res) {
-	res.render('submit');
+	res.render('index', {title: 'Expert Guacamole'});
 	console.log(req.body);
 });
 

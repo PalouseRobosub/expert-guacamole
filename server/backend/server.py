@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 import threading
 import zmq
+import twitter
 
 # Construct a Flask web server object.
 app = Flask(__name__)
@@ -29,7 +30,7 @@ hashtag = 'MailsHere'
 #   email_address={address}
 #   phone_number={number}
 #   hashtag={tag}
-@app.route("/", methods=['POST'])
+@app.route("/update", methods=['POST'])
 def configure():
     arguments = requst.args()
 
@@ -39,15 +40,38 @@ def configure():
         send_text = True;
     elif 'tweet' in arguments:
         send_tweet = True;
-    elif 'email_address' in arguments:
+    else if 'email_address' in arguments:
+        # Sanitize the email address and store it.
         email_address = arguments['email_address'];
-    elif 'phone_number' in arguments:
+    else if 'phone_number' in arguments:
+        # sanitize the phone number and store it.
         phone_number = arguments['phone_number']
     elif 'hashtag' in arguments:
         hashtag = arguments['hashtag'];
 
 def tweet():
 	return
+
+def text():
+    #TODO Try and set up text messages.
+    return
+
+def email():
+
+def check_socket():
+    msg = socket.recv()
+
+    # TODO: Verify that the message is legit here.
+    is_legit = True
+
+    if is_legit is True:
+        if send_tweet is True:
+            tweet()
+        if send_text is True:
+            text()
+        if send_email is True:
+            email()
+
 
 if __name__ == '__main__':
     thread.start()

@@ -24,6 +24,25 @@ private:
     uint16_t threshold;
 };
 
+class Switch : Sensor
+{
+public:
+    enum class Polarity : uint8_t
+    {
+        ACTIVE_HIGH,
+        ACTIVE_LOW
+    };
+    void init(uint8_t _pin, Polarity _polarity)
+    {
+        pin = _pin;
+        polarity = _polarity;
+    }
+    bool read(void);
+private:
+    uint8_t pin;
+    Polarity polarity;
+};
+
 
 //superclass for reading all sensors
 class Sensors
@@ -42,6 +61,7 @@ public:
 
 private:
     LightSensor light_sensor;
+    Switch reed_switch;
 };
 
 #endif // SENSORS_H

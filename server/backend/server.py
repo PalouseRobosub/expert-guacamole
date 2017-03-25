@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # Construct the network ports and the thread for reading the socket.
 context = zmq.Context()
-socket = context.socket(zmq.REP)
+socket = context.socket(zmq.PAIR)
 socket.bind('tcp://0.0.0.0:5959')
 thread = threading.Thread(target=check_socket)
 

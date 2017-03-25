@@ -7,11 +7,10 @@ import twitter
 # Construct a Flask web server object.
 app = Flask(__name__)
 
-# Construct the network ports and the thread for reading the socket.
+# Construct the network ports
 context = zmq.Context()
 socket = context.socket(zmq.PAIR)
 socket.bind('tcp://0.0.0.0:5959')
-thread = threading.Thread(target=check_socket)
 
 # Default parameters for tweeting, emailing, and sending text messages.
 send_email = False
@@ -20,6 +19,10 @@ send_text = False
 phone_number = '123-456-7890'
 email_address = 'default@gmail.com'
 hashtag = 'MailsHere'
+
+@app.route('/')
+def default_page():
+    return 'Hello there by good sir.'
 
 # Configures the server to send texts, tweet, or send emails.
 #
@@ -50,29 +53,34 @@ def configure():
         hashtag = arguments['hashtag'];
 
 def tweet():
-	return
+    return
 
 def text():
     #TODO Try and set up text messages.
     return
 
 def email():
+    return
 
 def check_socket():
-    msg = socket.recv()
+    while True:
+        msg = socket.recv()
+        print ('Packet: {}'.format(msg))
 
-    # TODO: Verify that the message is legit here.
-    is_legit = True
+        # TODO: Verify that the message is legit here.
+        is_legit = True
 
-    if is_legit is True:
-        if send_tweet is True:
-            tweet()
-        if send_text is True:
-            text()
-        if send_email is True:
-            email()
+        if is_legit is True:
+            if send_tweet is True:
+                tweet()
+            if send_text is True:
+                text()
+            if send_email is True:
+                email()
 
-
+# Construct the worker thread for the receiving function
+thread = threading.Thread(target=check_socket)
+thread.daemon = True
 if __name__ == '__main__':
     thread.start()
-    app.run();
+    app.run(host='0.0.0.0');

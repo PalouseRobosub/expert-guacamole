@@ -1,13 +1,14 @@
 from flask import Flask
 from flask import request
 import threading
+import zmq
 
 # Construct a Flask web server object.
 app = Flask(__name__)
 
 # Construct the network ports and the thread for reading the socket.
 context = zmq.Context()
-socket = context.socket(qmz.REP)
+socket = context.socket(zmq.REP)
 socket.bind('tcp://0.0.0.0:5959')
 thread = threading.Thread(target=check_socket)
 
@@ -34,19 +35,19 @@ def configure():
 
     if 'email' in arguments and arguments['email'] is 'True':
         send_email = True;
-    else if 'text' in arguments and arguments['text'] is 'True':
+    elif 'text' in arguments and arguments['text'] is 'True':
         send_text = True;
-    else if 'tweet' in arguments:
+    elif 'tweet' in arguments:
         send_tweet = True;
-    else if 'email_address' in arguments:
+    elif 'email_address' in arguments:
         email_address = arguments['email_address'];
-    else if 'phone_number' in arguments:
+    elif 'phone_number' in arguments:
         phone_number = arguments['phone_number']
-    else if 'hashtag' in arguments:
+    elif 'hashtag' in arguments:
         hashtag = arguments['hashtag'];
 
 def tweet():
-
+	return
 
 if __name__ == '__main__':
     thread.start()

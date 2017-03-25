@@ -20,9 +20,9 @@ phone_number = '123-456-7890'
 email_address = 'default@gmail.com'
 hashtag = 'MailsHere'
 
-@app.route('/')
+@app.route('/home')
 def default_page():
-    return 'Hello there by good sir.'
+    return 'Operation Expert Guacamole is a go.'
 
 # Configures the server to send texts, tweet, or send emails.
 #
@@ -35,7 +35,8 @@ def default_page():
 #   hashtag={tag}
 @app.route("/update", methods=['POST'])
 def configure():
-    arguments = requst.args()
+    arguments = dict(request.form)
+    print('Received an update request: {}'.format(arguments))
 
     if 'email' in arguments and arguments['email'] is 'True':
         send_email = True;
@@ -51,6 +52,7 @@ def configure():
         phone_number = arguments['phone_number']
     elif 'hashtag' in arguments:
         hashtag = arguments['hashtag'];
+    return ''
 
 def tweet():
     return

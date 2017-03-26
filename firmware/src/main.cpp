@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <avr/wdt.h>
 #include <SoftwareSerial.h>
 #include "Adafruit_FONA.h"
 #include "sensors.h"
@@ -100,8 +101,8 @@ void setup()
      * for the remainder of operation (keeping it enabled). When the micro
      * powers off, the KEY pin will fall low and turn off the SIM808.
      */
-    pinMode(FONA_KEY, INPUT);
-    digitalWrite(FONA_KEY, HIGH);
+    pinMode(FONA_KEY, OUTPUT);
+    digitalWrite(FONA_KEY, LOW);
 
     sensors.init(DOOR_SWITCH_PIN, LIGHT_SENSOR_PIN);
 
@@ -125,6 +126,24 @@ void setup()
      */
     Serial.begin(9600);
     fonaSerial.begin(4800);
+
+    /*
+     * Initialize the FONA and turn GPRS on.
+     */
+    if(!fona.begin(fonaSerial))
+    {
+        Serial.println("Couldn't find FONA");
+        cli();
+        wdt_enable(WDTO_15MS);
+        while(1);
+    }
+
+    while(!fona.enableGPRS(true))
+    {
+        Serial.println("Could not enable GPRS. Retrying");
+        delay(500);
+    }
+
 }
 
 void loop()
@@ -157,26 +176,13 @@ void loop()
 
             Serial.println("sending gsm data");
 
-            // Send message
-            if(!fona.begin(fonaSerial))
-            {
-                Serial.println("Couldn't find FONA");
-                while (1);
-            }
-
-            while(!fona.enableGPRS(true))
-            {
-                Serial.println("Could not enable GPRS. Retrying");
-                delay(3000);
-            }
-
             while(!fona.enableNTPTimeSync(true, 0))
             {
                 Serial.println("Could not enable NTP Time Sync. Retrying");
                 delay(3000);
             }
 
-            send_to("robosub.eecs.wsu.edu", 5959, "i need alcohol");
+            send_to("robosub.eecs.wsu.edu", 5959, "I need alcohol");
         }
 
         // wait for door to close before continuing

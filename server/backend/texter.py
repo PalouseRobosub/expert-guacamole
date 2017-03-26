@@ -17,7 +17,10 @@ class Texter():
         self.my_number = lines[2].rstrip("\n")
 
         # create client for sending messages
-        self.client = TwilioRestClient(self.sid, self.token)
+        try:
+            self.client = TwilioRestClient(self.sid, self.token)
+        except twilio.TwilioRestException:
+            print('Twilio failed to send a text. Did you attempt to send to an unverified number?')
 
     # the return of this function is just meant for debugging purposes, don't
     # use it to tell if the function succeeded or not

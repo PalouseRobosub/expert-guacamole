@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import zmq
 import argparse
+import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -15,5 +16,7 @@ if __name__ == "__main__":
 
     print "Sending message"
     socket.send("ryan sucks")
+    time.sleep(.1)
     print "Done!"
+    socket.close()
 

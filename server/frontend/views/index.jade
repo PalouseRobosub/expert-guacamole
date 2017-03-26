@@ -2,6 +2,9 @@ extends layout
 
 block content
 	h1= title
+	p= sub
+
+	img(src='/img/avo.jpg',width='240px',style='padding-left:50px')
 
 	form(action='/update', method='post', data-parsley-validate, class='form-horizontal')
 		div(class='form-group')

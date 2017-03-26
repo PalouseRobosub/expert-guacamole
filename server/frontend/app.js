@@ -28,7 +28,7 @@ app.use('/', index);
 app.use('/users', users);
 
 app.post('/update', function(req,res) {
-	res.render('index', {title: 'Expert Guacamole'});
+	res.render('index', {title: 'Expert Guacamole',sub: 'Submission Received'});
 
 	var options = {
 		url: 'http://localhost:5000/update',

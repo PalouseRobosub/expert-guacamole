@@ -1,148 +1,107 @@
-from flask import Flask
-from flask import request
+from texter import Texter
 import requests
-import twython
-import sys
+import socket
 import threading
-import zmq
-import signal
-import time
+import twython
 
-# Construct a Flask web server object.
-app = Flask(__name__)
+class Server():
+    def __init__(self, port = 5959, twitter_key_file='twitter.key', mailgun_key='mailgun.key'):
+        # Set the default parameters of the informer.
+        self.phone_number = '1234567890'
+        self.email_address = 'dave@example.com'
+        self.hashtag = '#MailsHere'
+        self.send_tweet = True
+        self.send_text = False
+        self.send_email = False
 
-# Threading exit variable
-exit = False
+        # Set up the Twilio messanger, Twitter API, and the MailGun API.
+        self.messager = Texter()
+        twitter_keys = open('twitter.key').readlines()
+        TWITTER_APP_KEY = twitter_keys[0].rstrip('\n')
+        TWITTER_APP_SECRET = twitter_keys[1].rstrip('\n')
+        TWITTER_OAUTH_TOKEN = twitter_keys[2].rstrip('\n')
+        TWITTER_OAUTH_TOKEN_SECRET = twitter_keys[3].rstrip('\n')
+        self.twitter = twython.Twython(TWITTER_APP_KEY,
+                                       TWITTER_APP_SECRET,
+                                       TWITTER_OAUTH_TOKEN,
+                                       TWITTER_OAUTH_TOKEN_SECRET)
 
-# Construct the network ports
-context = zmq.Context()
-socket = context.socket(zmq.PAIR)
-socket.bind('tcp://0.0.0.0:5959')
+        mailgun_keys = open('mailgun.key').readlines()
+        self.mailgun_api_key = mailgun_keys[0].rstrip('\n')
+        self.mailgun_url = mailgun_keys[1].rstrip('\n')
 
-# Default parameters for tweeting, emailing, and sending text messages.
-send_email = False
-send_tweet = False
-send_text = False
-phone_number = '123-456-7890'
-email_address = 'default@gmail.com'
-hashtag = 'MailsHere'
+        # Set up the TCP/IP server to communicate with the module.
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.bind(('',5959))
+        self.sock.listen(5)
 
-# Set up twitter API
-twitter_keys = open('twitter.key').readlines()
-TWITTER_APP_KEY = twitter_keys[0].rstrip('\n')
-TWITTER_APP_SECRET = twitter_keys[1].rstrip('\n')
-TWITTER_OAUTH_TOKEN = twitter_keys[2].rstrip('\n')
-TWITTER_OAUTH_TOKEN_SECRET = twitter_keys[3].rstrip('\n')
-print TWITTER_APP_KEY
+        # Set up the socket reading thread.
+        self.exit = False
+        self.thread = threading.Thread(target=self.check_socket)
+        self.thread.daemon = True
+        self.thread.start()
+        return
 
-twitter = twython.Twython(TWITTER_APP_KEY, \
-                  TWITTER_APP_SECRET, \
-                  TWITTER_OAUTH_TOKEN, \
-                  TWITTER_OAUTH_TOKEN_SECRET)
+    def kill_thread(self):
+        self.exit = True
+        return
 
-# Set up the MailGun API
-mailgun_keys = open('mailgun.key').readlines()
-MAILGUN_API_KEY = mailgun_keys[0].rstrip('\n')
-MAILGUN_URL = mailgun_keys[1].rstrip('\n')
-
-@app.route('/home')
-def default_page():
-    return 'Operation Expert Guacamole is a go.'
-
-# Configures the server to send texts, tweet, or send emails.
-#
-# Available names:
-#   email={True|False}
-#   text={True|False}
-#   tweet={True|False}
-#   email_address={address}
-#   phone_number={number}
-#   hashtag={tag}
-@app.route("/update", methods=['POST'])
-def configure():
-    global send_email
-    global send_text
-    global send_tweet
-    global email_address
-    global hashtag
-    global phone_number
-
-    arguments = dict(request.form)
-    print('Received an update request: {}'.format(arguments))
-
-    if 'email' in arguments and arguments['email'][0].encode('ascii', 'ignore') == 'True':
-        send_email = True;
-        if 'email_address' in arguments:
-            print('Updating email address to {}'.format(email_address))
-            email_address = arguments['email_address'][0].encode('ascii', 'ignore')
-    if 'text' in arguments and arguments['text'][0].encode('ascii', 'ignore') == 'True':
-        send_text = True;
-        if 'phone_number' in arguments:
-            phone_number = arguments['phone_number'][0].encode('ascii', 'ignore')
-    if 'tweet' in arguments:
-        send_tweet = True;
-        if 'hashtag' in arguments:
-            hashtag = arguments['hashtag'][0].encode('ascii', 'ignore')
-    return ''
-
-def tweet():
-    try:
-        twitter.update_status(status='You\'ve got mail! (Operation Expert Guacamole is a go) #{}'.format(hashtag))
-    except TwythonError:
-        print('Failed to tweet. (Duplicate?)')
-    return
-
-def text():
-    #TODO Try and set up text messages.
-    return
-
-def email():
-    requests.post(MAILGUN_URL, auth=('api', MAILGUN_API_KEY), data={
-            'from': 'Expert guacamole <ExpertGuacamole@smartmail.com>',
-            'to': email_address,
-            'subject': 'You\'ve got Mail!',
-            'text': 'Your mail has arrived!'})
-    return
-
-def check_socket():
-    while not exit:
+    def tweet(self):
         try:
-            msg = socket.recv()
-        except zmq.ZMQError:
-            continue
+            self.twitter.update_status(status='You\'ve got mail! (Operation Expert Guacamole is a go) {}'.format(self.hashtag))
+        except twython.TwythonError:
+            print('Failed to tweet. Did you post a duplicate?')
+        return
 
-        print ('Packet: {}'.format(msg))
+    def text(self):
+        self.messager.send(self.phone_number, 'Your mail has arrived!')
+        return
 
-        # TODO: Verify that the message is legit here.
-        is_legit = True
+    def email(self):
+        requests.post(self.mailgun_url, auth=('api', self.mailgun_api_key),
+                data={
+                'from': 'Expert guacamole <ExpertGuacamole@smartmail.com>',
+                'to': self.email_address,
+                'subject': 'You\'ve got Mail!',
+                'text': 'Mail has just arrived at your mailbox.'})
+        return
 
-        if is_legit is True:
-            print('Data is legit.')
-            if send_tweet is True:
-                print('Tweeting with #{}'.format(hashtag))
-                tweet()
-            if send_text is True:
-                print('Texting {}'.format(phone_number))
-                text()
-            if send_email is True:
-                print('Emailing {}'.format(email_address))
-                email()
-    print('Thread is dying.')
-    return
+    def check_socket(self):
+        while not self.exit:
+            client, address = self.sock.accept()
+            msg = client.recv(1024)
+            client.close()
 
-# Construct the worker thread for the receiving function
-thread = threading.Thread(target=check_socket)
-thread.daemon = True
+            print ('Packet ({}): {}'.format(address, msg))
 
-# CTRL+C Signal Handler
-def sig_int_callback(signum, stack):
-    exit = True
-    print('Handling SIGINT from thread: {}'.format(threading.current_thread().name));
-    sys.exit(0)
-    return
+            # TODO: Verify that the message is legit here.
+            is_legit = True
 
-signal.signal(signal.SIGINT, sig_int_callback)
+            if is_legit is True:
+                print('Data is legit.')
+                if self.send_tweet is True:
+                    print('Tweeting with {}'.format(self.hashtag))
+                    self.tweet()
+                if self.send_text is True:
+                    print('Texting {}'.format(self.phone_number))
+                    self.text()
+                if self.send_email is True:
+                    print('Emailing {}'.format(self.email_address))
+                    self.email()
+        print('Server socket thread has died.')
+        return
 
-if __name__ == '__main__':
-    thread.start()
-    app.run(host='0.0.0.0');
+    def update_parameters(self, phone_number, email_address, hashtag):
+        if phone_number is not None:
+            self.phone_number = phone_number.strip('() -')
+            self.send_text = True
+
+        if email_address is not None:
+            self.email_address = email_address
+            self.send_email = True
+
+        if hashtag is not None:
+            self.hashtag = '#' + hastag.lstrip('#')
+            self.send_tweet = True
+        return

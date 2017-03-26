@@ -40,7 +40,7 @@ def configure():
     if 'tweet' in arguments and 'hashtag' in arguments:
         hashtag = arguments['hashtag'][0].encode('ascii', 'ignore')
 
-    server.update(phone_number, email_address, hashtag)
+    server.update_parameters(phone_number, email_address, hashtag)
 
     return ''
 

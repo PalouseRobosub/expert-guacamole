@@ -38,3 +38,7 @@ textarea.parsley-error {
 .form-control {
   min-width: 350px;
 }
+.bolder {
+  font-size: 20px;
+  font-weight: 900;
+}

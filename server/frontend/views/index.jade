@@ -4,34 +4,37 @@ block content
 	h1= title
 	p Welcome to #{title}
 
-	div
-		form(action='/update', method='post', data-parsley-validate)
-			div(data-role='fieldcontain')
-				fieldset(data-role='controlgroup')
-					label(for='email_address') email
-						input(id='email_address',type='email',value='',placeholder='@',name='email_address', data-parsley-type='email')
-			div(data-role='fieldcontain')
-				fieldset(data-role='controlgroup')
-					label(for='email') Use Email?
-						input(id='email',type='checkbox',value='True',name='email')
-			div(data-role='fieldcontain')
-				fieldset(data-role='controlgroup')
-					label(for='phone_number') phone
-						input(id='phone_number',type='text',value='',placeholder='(***)-***-***',name='phone_number', data-parsley-pattern="(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}")
-			div(data-role='fieldcontain')
-				fieldset(data-role='controlgroup')
-					label(for='phone') Use Phone?
-						input(id='phone',type='checkbox',value='True',name='phone')
-			div(data-role='fieldcontain')
-				fieldset(data-role='controlgroup')
-					label(for='hashtag') twitter
-						input(id='hashtag',type='text',value='',placeholder='#',name='hashtag')
-			div(data-role='fieldcontain')
-				fieldset(data-role='controlgroup')
-					label(for='tweet') Use Twitter?
-						input(id='tweet',type='checkbox',value='True',name='tweet')
-			div(data-role='fieldcontain')
-				input(type='submit',value='Submit',data-transition='fade',data-theme='c')
+	div(id='errors')
+
+	div(class='row')
+		form(action='/update', method='post', data-parsley-validate, data-parsely-errors-container="#errors")
+			div(class='col-lg-4')
+				div(class='row')
+					div(class='col-lg-6')
+						label(for='email_address') Email: 
+							input(class='form-control',id='email_address',type='email',value='',placeholder='@',name='email_address', data-parsley-type='email', data-parsely-errors-container="#errors",class='input-large',width='500px')
+					div(class='col-lg-6')
+						br
+						label(for='email')   Use Email?
+							input(id='email',type='checkbox',value='True',name='email')
+				div(class='row')
+					div(class='col-lg-6')
+						label(for='phone_number') Phone: 
+							input(class='form-control',id='phone_number',type='text',value='',placeholder='(***)-***-***',name='phone_number', data-parsley-pattern="^((\\([0-9]{3}\\)\\s|\\([0-9]{3}\\)-|[0-9]{3}-|[0-9]{3})([0-9]{3}-|[0-9]{3})([0-9]{4})(?:,|))+")
+					div(class='col-lg-6')
+						br
+						label(for='phone') Use Phone?
+							input(id='phone',type='checkbox',value='True',name='phone')
+				div(class='row')
+					div(class='col-lg-6')
+						label(for='hashtag') Twitter: 
+							input(class='form-control',id='hashtag',type='text',value='',placeholder='#',name='hashtag')
+					div(class='col-lg-6')
+						br
+						label(for='tweet') Use Twitter?
+							input(id='tweet',type='checkbox',value='True',name='tweet')
+				div(data-role='fieldcontain')
+					input(class='btn-default',type='submit',value='Submit',data-transition='fade',data-theme='b')
 
 	script(src='/js/jquery.min.js')
 	script(src='/js/parsley.min.js')

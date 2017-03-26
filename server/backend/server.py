@@ -1,3 +1,4 @@
+from datetime import datetime
 from texter import Texter
 import requests
 import socket
@@ -49,7 +50,8 @@ class Server():
 
     def tweet(self):
         try:
-            self.twitter.update_status(status='You\'ve got mail! (Operation Expert Guacamole is a go) {}'.format(self.hashtag))
+            now = datetime.now();
+            self.twitter.update_status(status='You\'ve got mail! {}/{} at {}:{} {}'.format(now.month, now.day, now.hour, now.minute, self.hashtag))
         except twython.TwythonError:
             print('Failed to tweet. Did you post a duplicate?')
         return
@@ -93,6 +95,9 @@ class Server():
         return
 
     def update_parameters(self, phone_number, email_address, hashtag):
+        self.send_text = False
+        self.send_email = False
+        self.send_tweet = False
         if phone_number is not None:
             self.phone_number = phone_number.strip('() -')
             self.send_text = True

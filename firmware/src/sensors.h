@@ -1,6 +1,7 @@
 #ifndef SENSORS_H
 #define SENSORS_H
 
+#include <Arduino.h>
 #include <stdint.h>
 
 //sensor base class
@@ -17,6 +18,7 @@ public:
     {
         pin = _pin;
         threshold = _threshold;
+        pinMode(pin, INPUT);
     }
     bool read(void);
 private:
@@ -36,6 +38,7 @@ public:
     {
         pin = _pin;
         polarity = _polarity;
+        pinMode(pin, INPUT);
     }
     bool read(void);
 private:
@@ -52,7 +55,7 @@ public:
     ~Sensors() {}
 
     //initializes all sensors
-    void init(void);
+    void init(uint8_t door_switch_pin, uint8_t light_sensor_pin);
 
     // reads all of our sensors to determine if the mailbox has been opened
     // returns true if mailbox has been opened

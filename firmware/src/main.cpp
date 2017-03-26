@@ -1,22 +1,30 @@
 #include <Arduino.h>
 #include "sensors.h"
 
-#define BUTTON_LED_PIN 6
-#define BUTTON_PIN 8
+#define CANCEL_BUTTON_LED_PIN 6
+#define CANCEL_BUTTON_PIN 8
+#define DOOR_SWITCH_PIN 7
+#define LIGHT_SENSOR_PIN A0
+
+
+
+#define _CANCEL_TIMEOUT_SEC 10
+#define CANCEL_TIMEOUT _CANCEL_TIMEOUT_SEC * 20
+
 
 
 Sensors sensors;
 Switch cancel_button;
 
-
+void blink_light(uint16_t i);
 
 void setup()
 {
-    sensors.init();
-    cancel_button.init(BUTTON_PIN, Switch::Polarity::ACTIVE_LOW);
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
-    pinMode(BUTTON_LED_PIN, OUTPUT);
-    digitalWrite(BUTTON_LED_PIN, LOW);
+    sensors.init(DOOR_SWITCH_PIN, LIGHT_SENSOR_PIN);
+    cancel_button.init(CANCEL_BUTTON_PIN, Switch::Polarity::ACTIVE_LOW);
+    pinMode(CANCEL_BUTTON_PIN, INPUT_PULLUP);
+    pinMode(CANCEL_BUTTON_LED_PIN, OUTPUT);
+    digitalWrite(CANCEL_BUTTON_LED_PIN, LOW);
     Serial.begin(9600);
 }
 
@@ -30,9 +38,9 @@ void loop()
 
         //wait for up to 30 seconds
         Serial.println("waiting for cancel button press...");
-        for (uint8_t i = 0; i < 10*20; ++i)
+        for (uint16_t i = 0; i < CANCEL_TIMEOUT; ++i)
         {
-            analogWrite(BUTTON_LED_PIN, 255);
+            blink_light(i);
             if (cancel_button.read() == true)
             {
                 Serial.println("cancel button press received!");
@@ -42,14 +50,42 @@ void loop()
 
             delay(50);
         }
-        digitalWrite(BUTTON_LED_PIN, 0);
+        digitalWrite(CANCEL_BUTTON_LED_PIN, 0);
         if(button_pressed != true)
         {
 
             Serial.println("sending gsm data");
             //send message
         }
+        else //cancel button pressed, wait for door to close
+        {
+            while(sensors.mailbox_opened() == true)
+            {
+                delay(200);
+            }
+
+        }
     }
 
-    delay(1000);
+    delay(200);
+}
+
+void blink_light(uint16_t i)
+{
+    if (i/20 < _CANCEL_TIMEOUT_SEC - 3)
+    {
+        if (i % 10 == 0)
+        {
+            digitalWrite(CANCEL_BUTTON_LED_PIN,
+                         !digitalRead(CANCEL_BUTTON_LED_PIN));
+        }
+    }
+    else
+    {
+        if (i % 1 == 0)
+        {
+            digitalWrite(CANCEL_BUTTON_LED_PIN,
+                         !digitalRead(CANCEL_BUTTON_LED_PIN));
+        }
+    }
 }

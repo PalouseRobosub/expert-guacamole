@@ -6,3 +6,14 @@ Install python Flask and pyzmq packages:
 
 Install ZMQ libraries:
     sudo aptitude install libzmq3-dev
+
+# Server Frontend Setup
+Install NodeJS 6
+	- curl -sL http://deb.nodesource.com/setup_6.x | sudo -E bash -
+	- sudo apt install nodejs
+	- sudo npm install -g nodemon
+Install Dependencies
+	- cd server/frontend
+	- npm install
+Start Server
+	- nodemon

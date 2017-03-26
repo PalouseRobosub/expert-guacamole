@@ -29,11 +29,11 @@ hashtag = 'MailsHere'
 
 # Set up twitter API
 twitter_keys = open('twitter.key').readlines()
-twitter_user = open('twitter.user').readlines()
 TWITTER_APP_KEY = twitter_keys[0].rstrip('\n')
 TWITTER_APP_SECRET = twitter_keys[1].rstrip('\n')
-TWITTER_OAUTH_TOKEN = twitter_user[0].rstrip('\n')
-TWITTER_OAUTH_TOKEN_SECRET = twitter_user[1].rstrip('\n')
+TWITTER_OAUTH_TOKEN = twitter_keys[2].rstrip('\n')
+TWITTER_OAUTH_TOKEN_SECRET = twitter_keys[3].rstrip('\n')
+print TWITTER_APP_KEY
 
 twitter = twython.Twython(TWITTER_APP_KEY, \
                   TWITTER_APP_SECRET, \
@@ -60,32 +60,36 @@ def default_page():
 #   hashtag={tag}
 @app.route("/update", methods=['POST'])
 def configure():
+    global send_email
     global send_text
     global send_tweet
-    global send_email
+    global email_address
+    global hashtag
+    global phone_number
 
     arguments = dict(request.form)
     print('Received an update request: {}'.format(arguments))
 
     if 'email' in arguments and arguments['email'][0].encode('ascii', 'ignore') == 'True':
         send_email = True;
+        if 'email_address' in arguments:
+            print('Updating email address to {}'.format(email_address))
+            email_address = arguments['email_address'][0].encode('ascii', 'ignore')
     if 'text' in arguments and arguments['text'][0].encode('ascii', 'ignore') == 'True':
         send_text = True;
+        if 'phone_number' in arguments:
+            phone_number = arguments['phone_number'][0].encode('ascii', 'ignore')
     if 'tweet' in arguments:
         send_tweet = True;
-    if 'email_address' in arguments:
-        # Sanitize the email address and store it.
-        email_address = arguments['email_address'][0].encode('ascii', 'ignore')
-        print('Updating email address to {}'.format(email_address))
-    if 'phone_number' in arguments:
-        # sanitize the phone number and store it.
-        phone_number = arguments['phone_number'][0].encode('ascii', 'ignore')
-    if 'hashtag' in arguments:
-        hashtag = arguments['hashtag'];
+        if 'hashtag' in arguments:
+            hashtag = arguments['hashtag'][0].encode('ascii', 'ignore')
     return ''
 
 def tweet():
-    twitter.update_status(status='You\'ve got mail! (Operation Expert Guacamole is a go) #{}'.format(hashtag))
+    try:
+        twitter.update_status(status='You\'ve got mail! (Operation Expert Guacamole is a go) #{}'.format(hashtag))
+    except TwythonError:
+        print('Failed to tweet. (Duplicate?)')
     return
 
 def text():
@@ -115,13 +119,13 @@ def check_socket():
         if is_legit is True:
             print('Data is legit.')
             if send_tweet is True:
-                print('Tweeting with #{}.'.format(hashtag))
+                print('Tweeting with #{}'.format(hashtag))
                 tweet()
             if send_text is True:
-                print('Texting.')
+                print('Texting {}'.format(phone_number))
                 text()
             if send_email is True:
-                print('Emailing {}.'.format(email_address))
+                print('Emailing {}'.format(email_address))
                 email()
     print('Thread is dying.')
     return

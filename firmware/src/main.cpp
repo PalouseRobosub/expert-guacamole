@@ -3,26 +3,61 @@
 #include "Adafruit_FONA.h"
 #include "sensors.h"
 
-#define LIGHT_SENSOR_PIN A0
+/*
+ * This pin is not actually used, but we are lazy.
+ */
+#define LIGHT_SENSOR_PIN A5
+
+/*
+ * Define the FONA connection pins.
+ */
 #define FONA_VIO 3
 #define FONA_RST 4
 #define FONA_RX 5
 #define FONA_TX 6
 #define FONA_KEY 7
-#define CANCEL_BUTTON_PIN 8
-#define DOOR_SWITCH_PIN 9
-#define CANCEL_BUTTON_LED_PIN 10
 
+/*
+ * Define the sensor inputs.
+ */
+#define CANCEL_BUTTON_LED_PIN A2
+#define CANCEL_BUTTON_PIN A1
+#define DOOR_SWITCH_PIN A0
+
+/*
+ * Define algorithm timeouts.
+ */
 #define _CANCEL_TIMEOUT_SEC 10
 #define CANCEL_TIMEOUT _CANCEL_TIMEOUT_SEC * 20
 
+/*
+ * Set up the FONA serial interface.
+ */
 SoftwareSerial fonaSerial = SoftwareSerial(FONA_TX, FONA_RX);
 Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
 
 Sensors sensors;
 Switch cancel_button;
 
-void blink_light(uint16_t i);
+void blink_light(uint16_t i)
+{
+    if (i/20 < _CANCEL_TIMEOUT_SEC - 3)
+    {
+        if (i % 10 == 0)
+        {
+            digitalWrite(CANCEL_BUTTON_LED_PIN,
+                    !digitalRead(CANCEL_BUTTON_LED_PIN));
+        }
+    }
+    else
+    {
+        if (i % 1 == 0)
+        {
+            digitalWrite(CANCEL_BUTTON_LED_PIN,
+                    !digitalRead(CANCEL_BUTTON_LED_PIN));
+        }
+    }
+}
 
 bool send_to(char *server, int port, char *data)
 {
@@ -50,20 +85,44 @@ bool send_to(char *server, int port, char *data)
 
 void setup()
 {
+    /*
+     * Set the IO voltage pin for the FONA and pull it out of reset.
+     */
+    pinMode(FONA_VIO, OUTPUT);
+    digitalWrite(FONA_VIO, HIGH);
+    delay(5);
+    pinMode(FONA_RST, OUTPUT);
+    digitalWrite(FONA_RST, LOW);
+    delay(25);
+
+    /*
+     * Pull the SIM808 out of reset by setting key low and then pulling it high
+     * for the remainder of operation (keeping it enabled). When the micro
+     * powers off, the KEY pin will fall low and turn off the SIM808.
+     */
+    pinMode(FONA_KEY, INPUT);
+    digitalWrite(FONA_KEY, HIGH);
+
     sensors.init(DOOR_SWITCH_PIN, LIGHT_SENSOR_PIN);
+
+    /*
+     * The reed switch is normally closed, but when the mailbox door is closed,
+     * the reed switch is therefore open. When the mailbox opens, the
+     * reedswitch engages, pulling the pin down to ground and thus making an
+     * active low signal.
+     */
     cancel_button.init(CANCEL_BUTTON_PIN, Switch::Polarity::ACTIVE_LOW);
 
+    /*
+     * Set up the cancel button output pins.
+     */
     pinMode(CANCEL_BUTTON_PIN, INPUT_PULLUP);
     pinMode(CANCEL_BUTTON_LED_PIN, OUTPUT);
-    pinMode(FONA_RST, OUTPUT);
-    pinMode(FONA_VIO, OUTPUT);
-    pinMode(FONA_KEY, OUTPUT);
-
     digitalWrite(CANCEL_BUTTON_LED_PIN, LOW);
-    digitalWrite(FONA_RST, LOW);
-    digitalWrite(FONA_VIO, HIGH);
-    digitalWrite(FONA_KEY, LOW);
 
+    /*
+     * Begin the serial ports to the FONA and the debug console.
+     */
     Serial.begin(9600);
     fonaSerial.begin(4800);
 }
@@ -91,6 +150,7 @@ void loop()
 
             delay(50);
         }
+
         digitalWrite(CANCEL_BUTTON_LED_PIN, 0);
         if(button_pressed != true)
         {
@@ -128,24 +188,4 @@ void loop()
     }
 
     delay(200);
-}
-
-void blink_light(uint16_t i)
-{
-    if (i/20 < _CANCEL_TIMEOUT_SEC - 3)
-    {
-        if (i % 10 == 0)
-        {
-            digitalWrite(CANCEL_BUTTON_LED_PIN,
-                    !digitalRead(CANCEL_BUTTON_LED_PIN));
-        }
-    }
-    else
-    {
-        if (i % 1 == 0)
-        {
-            digitalWrite(CANCEL_BUTTON_LED_PIN,
-                    !digitalRead(CANCEL_BUTTON_LED_PIN));
-        }
-    }
 }

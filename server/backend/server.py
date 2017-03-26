@@ -51,7 +51,7 @@ class Server():
     def tweet(self):
         try:
             now = datetime.now();
-            self.twitter.update_status(status='You\'ve got mail! {}/{} at {}:{} {}'.format(now.month, now.day, now.hour, now.minute, self.hashtag))
+            self.twitter.update_status(status='You\'ve got mail! {}/{} at {}:{:02d} {}'.format(now.month, now.day, now.hour, now.minute, self.hashtag))
         except twython.TwythonError:
             print('Failed to tweet. Did you post a duplicate?')
         return
@@ -107,6 +107,6 @@ class Server():
             self.send_email = True
 
         if hashtag is not None:
-            self.hashtag = '#' + hastag.lstrip('#')
+            self.hashtag = '#' + hashtag.lstrip('#')
             self.send_tweet = True
         return

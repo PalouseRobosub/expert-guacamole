@@ -9,6 +9,6 @@ if __name__ == "__main__":
     s.open()
 
     while True:
-        print s.readline()
+        print s.readline().rstrip("\n")
 
 

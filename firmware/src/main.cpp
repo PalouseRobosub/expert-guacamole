@@ -30,6 +30,7 @@ void setup()
 
 void loop()
 {
+    Serial.println("checking mailbox door");
     bool opened = sensors.mailbox_opened();
     if(opened == true)
     {
@@ -57,13 +58,12 @@ void loop()
             Serial.println("sending gsm data");
             //send message
         }
-        else //cancel button pressed, wait for door to close
-        {
-            while(sensors.mailbox_opened() == true)
-            {
-                delay(200);
-            }
 
+        // wait for door to close before continuing
+        Serial.println("waiting for door to close");
+        while(sensors.mailbox_opened() == true)
+        {
+            delay(200);
         }
     }
 

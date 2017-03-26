@@ -5,11 +5,11 @@ block content
 	p Welcome to #{title}
 
 	div
-		form(action='/update', method='post')
+		form(action='/update', method='post', data-parsley-validate)
 			div(data-role='fieldcontain')
 				fieldset(data-role='controlgroup')
 					label(for='email_address') email
-						input(id='email_address',type='text',value='',placeholder='@',name='email_address')
+						input(id='email_address',type='email',value='',placeholder='@',name='email_address', data-parsley-type='email')
 			div(data-role='fieldcontain')
 				fieldset(data-role='controlgroup')
 					label(for='email') Use Email?
@@ -17,7 +17,7 @@ block content
 			div(data-role='fieldcontain')
 				fieldset(data-role='controlgroup')
 					label(for='phone_number') phone
-						input(id='phone_number',type='text',value='',placeholder='(***)-***-***',name='phone_number')
+						input(id='phone_number',type='text',value='',placeholder='(***)-***-***',name='phone_number', data-parsley-pattern="(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}")
 			div(data-role='fieldcontain')
 				fieldset(data-role='controlgroup')
 					label(for='phone') Use Phone?
@@ -32,3 +32,7 @@ block content
 						input(id='tweet',type='checkbox',value='True',name='tweet')
 			div(data-role='fieldcontain')
 				input(type='submit',value='Submit',data-transition='fade',data-theme='c')
+
+	script(src='/js/jquery.min.js')
+	script(src='/js/parsley.min.js')
+
